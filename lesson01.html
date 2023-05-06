@@ -3,7 +3,7 @@
  * @Autor: sy
  * @Date: 2023-05-05 16:38:55
  * @LastEditors: sy
- * @LastEditTime: 2023-05-06 15:39:21
+ * @LastEditTime: 2023-05-06 17:50:56
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -36,13 +36,22 @@
         baseLayerPicker: false,
         sceneModePicker: false,
         navigationHelpButton: false,
-        infoBox: false, 
+        infoBox: false,
         // 底图
-        imageryProvider: new Cesium.ArcGisMapServerImageryProvider({
-           url: "http://webst01.is.autonavi.com/appmaptile?style=8&x={x}&y={y}&z={z}",// 遥感影像
-           })
-
+        imageryProvider: new Cesium.UrlTemplateImageryProvider({
+        url: "https://webst{s}.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&style=6", // 添加高德影像
+        subdomains: ["01", "02", "03", "04"], //多域名请求
+      })
+        // imageryProvider: new Cesium.OpenStreetMapImageryProvider({
+        //   url : "https://webst{s}.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&style=6",
+        //   subdomains:["01","02","03","04"] //多域名请求
+        // }), 
       });
+      // var gaodeImageProvider = new Cesium.UrlTemplateImageryProvider({
+      //   url: "http://webst01.is.autonavi.com/appmaptile?style=8&x={x}&y={y}&z={z}", // 添加高德影像
+      //   subdomains: ["01", "02", "03", "04"], //多域名请求
+      // });
+      // viewer.imageryLayers.addImageryProvider(gaodeImageProvider);
     </script>
   </body>
 </html>
