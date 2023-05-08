@@ -1,0 +1,142 @@
+<!--
+ * @Description: 实体Entity ，标牌文字 ， billboard label
+ * @Autor: sy
+ * @Date: 2023-05-08 11:32:40
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-08 15:10:56
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+    <script src="./Cesium/Cesium.js"></script>
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .cesium-widget-credits {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumcontainer"></div>
+    <script>
+      var viewer = new Cesium.Viewer("cesiumcontainer", {
+        animation: false,
+        fullscreenButton: false,
+        homeButton: false,
+        timeline: false,
+        geocoder: false,
+        baseLayerPicker: false,
+        sceneModePicker: false,
+        navigationHelpButton: false,
+        infoBox: false,
+        // 底图
+        imageryProvider: new Cesium.UrlTemplateImageryProvider({
+          url: "http://webrd01.is.autonavi.com/appmaptile?&scale=1&lang=zh_cn&style=8&x={x}&y={y}&z={z}", // 添加高德影像
+          minimumLevel: 1,
+          maximumLevel: 18,
+        }),
+      });
+      // 设置相机位置和角度以供viewer使用。
+      viewer.camera.setView({
+        destination: Cesium.Cartesian3.fromDegrees(109, 34, 1000000), //相机（眼睛）位置 不是地图位置  高多少米
+        //相机的姿态
+        orientation: {
+          heading: Cesium.Math.toRadians(0), // 朝向
+          pitch: Cesium.Math.toRadians(-90), // 俯仰
+          roll: 0.0, //滚转
+        },
+      });
+      var datasource = new Cesium.CustomDataSource("enetiestestdata");
+      viewer.dataSources.add(datasource);
+      datasource.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(108, 34, 10),
+        billboard: {
+          image: "./images/1.png",
+          scale: 0.5,
+          // sizeInMeters:true,
+           horizontalOrigin:Cesium.HorizontalOrigin.CENTER,
+           verticalOrigin:Cesium.VerticalOrigin.BOTTOM,
+          //pixelOffset:new Cesium.Cartesian2(0,20),
+          //alignedAxis: Cesium.Cartesian3.UNIT_Y,
+          // rotation:-1.57,
+          // scaleByDistance: new Cesium.NearFarScalar(20000, 1, 8000000, 0.1),
+          ////pixelOffsetScaleByDistance: new Cesium.NearFarScalar(20000, 10, 8000000, 100),//距离是2万米，偏移10个像素
+          //translucencyByDistance : new Cesium.NearFarScalar(20000, 1, 8000000, 0),
+          //distanceDisplayCondition: new Cesium.DistanceDisplayCondition(2000, 800000),
+        },
+        label: {
+          text: "label1",
+          scale: 1,
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          fillColor: Cesium.Color.BLUE,
+          outlineColor: Cesium.Color.RED,
+          showBackground: false,
+          pixelOffset: new Cesium.Cartesian2(0, -180),
+          backgroundColor: Cesium.Color.BLACK,
+          eyeOffset: new Cesium.Cartesian3(0, 0, -10),
+        },
+        point: {
+          pixelSize: 10,
+          color: Cesium.Color.RED,
+        },
+      });
+
+      const canvas = document.getElementById("cesiumcontainer");
+
+      let isDragging = false;
+      let previousMousePosition;
+      console.log(canvas, "canvas");
+      canvas.onmousedown = function (e) {
+        isDragging = true;
+        previousMousePosition = {
+          x: e.clientX,
+          y: e.clientY,
+        };
+      };
+
+      canvas.onmouseup = function (e) {
+        isDragging = false;
+      };
+
+      canvas.onmousemove = function (e) {
+        if (!isDragging) {
+          return;
+        }
+
+        // 获取鼠标事件前后的位置变化
+        const delta = {
+          x: e.clientX - previousMousePosition.x,
+          y: e.clientY - previousMousePosition.y,
+        };
+
+        // 根据鼠标位置变化更新相机的俯仰角和偏航角
+        camera.pitch -=
+          ((delta.y / canvas.clientHeight) * camera.frustum.fov * Math.PI) /
+          180;
+        camera.yaw -=
+          ((delta.x / canvas.clientWidth) * camera.frustum.fov * Math.PI) / 180;
+
+        // 保证相机的俯仰角在 [-90, 90] 度之间
+        camera.pitch = Math.max(
+          Math.min(camera.pitch, Cesium.Math.toRadians(90)),
+          Cesium.Math.toRadians(-90)
+        );
+
+        // 保存下一次事件的鼠标位置
+        previousMousePosition = {
+          x: e.clientX,
+          y: e.clientY,
+        };
+        console.log(previousMousePosition);
+      };
+    </script>
+  </body>
+</html>

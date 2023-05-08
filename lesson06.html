@@ -1,0 +1,140 @@
+<!--
+ * @Description: 添加点，线，面 ；point，polygon，polyline，实体的查找，删除。
+ * @Autor: sy
+ * @Date: 2023-05-08 10:41:44
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-08 11:26:58
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+    <script src="./Cesium/Cesium.js"></script>
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .cesium-widget-credits {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumcontainer"></div>
+    <script>
+      var viewer = new Cesium.Viewer("cesiumcontainer", {
+        animation: false,
+        fullscreenButton: false,
+        homeButton: false,
+        timeline: false,
+        geocoder: false,
+        baseLayerPicker: false,
+        sceneModePicker: false,
+        navigationHelpButton: false,
+        infoBox: false,
+        // 底图
+        imageryProvider: new Cesium.UrlTemplateImageryProvider({
+          url: "http://webrd01.is.autonavi.com/appmaptile?&scale=1&lang=zh_cn&style=8&x={x}&y={y}&z={z}", // 添加高德影像
+          minimumLevel: 1,
+          maximumLevel: 18,
+        }),
+      });
+      // 设置相机位置和角度以供viewer使用。
+      viewer.camera.setView({
+        destination: Cesium.Cartesian3.fromDegrees(109, 34, 1000000), //相机（眼睛）位置 不是地图位置  高多少米
+        //相机的姿态
+        orientation: {
+          heading: Cesium.Math.toRadians(0), // 朝向
+          pitch: Cesium.Math.toRadians(-90), // 俯仰
+          roll: 0.0, //滚转
+        },
+      });
+
+      // 添加点 方式1
+      var pointentity = viewer.entities.add({
+        id: "id1",
+        position: new Cesium.Cartesian3.fromDegrees(109, 34, 100000.0), // 点位置 不是地图
+        point: {
+          pixelSize: 10,
+          color: Cesium.Color.YELLOW, // 点颜色
+          outlineColor: Cesium.Color.BLACK, // 点背景颜色 不是地图背景颜色 不是点的颜色
+          outlineWidth: 2,
+        },
+      });
+      // 添加点 方式2
+      var pointentity2 = new Cesium.Entity({
+        id: "id2",
+        position: new Cesium.Cartesian3.fromDegrees(110, 34, 100000.0), // 点位置 不是地图
+        point: {
+          pixelSize: 10,
+          color: Cesium.Color.YELLOW, // 点颜色
+          outlineColor: Cesium.Color.BLACK, // 点背景颜色 不是地图背景颜色 不是点的颜色
+          outlineWidth: 2,
+        },
+      });
+
+      viewer.entities.add(pointentity2);
+
+      // 添加面
+      viewer.entities.add({
+        id: "polygontest",
+        name: "Wyoming",
+        polygon: {
+          hierarchy: Cesium.Cartesian3.fromDegreesArray([
+            109.080842, 45.002073, 105.91517, 45.002073, 104.058488, 44.996596,
+            104.053011, 43.002989, 104.053011, 41.003906, 105.728954, 40.998429,
+            107.919731, 41.003906, 109.04798, 40.998429, 111.047063, 40.998429,
+            111.047063, 42.000709, 111.047063, 44.476286, 111.05254, 45.002073,
+            109.080842, 45.002073,
+          ]),
+          height: 100, //如果高度不存在，则边框不生效
+          material: Cesium.Color.RED.withAlpha(0.5),
+          outline: true,
+          outlineColor: Cesium.Color.BLUE,
+          outlineWidth: 1,
+          fill: true,
+        },
+      });
+
+      // 添加线
+      viewer.entities.add({
+        id: "polylinetest",
+        name: "boderLine",
+        polyline: {
+          positions: Cesium.Cartesian3.fromDegreesArray([
+            109.080842, 34.002073, 105.91517, 34.002073,
+          ]),
+          width: 10,
+          material: Cesium.Color.YELLOW,
+        },
+      });
+
+      // 删除实体 俩种方式
+      var tempentity = viewer.entities.getById("polylinetest");
+      // viewer.entities.remove(tempentity)//删除单个实体 objectId是string类型的实体id。或者通过ids参数指定的实体id列
+      viewer.entities.removeById("polylinetest");
+      tempentity = null;
+
+      //创建数据源，名称可以任意写，但是必须是:enetestdata。在这个数据源 上，可以添加或删除一些实体或点。 这些实体或点的位置、大小、颜色、光栅和阴影都可以用自定义的函数或组件写到数据源中。
+      // 创建一个新的数据源并将其添加到viewer中。 当点击数据源时，会发出“生成”按钮
+      var datasource = new Cesium.CustomDataSource("enetiestestdata");
+      viewer.dataSources.add(datasource)
+      datasource.entities.add({
+        id: "id3",
+        position: new Cesium.Cartesian3.fromDegrees(109, 37, 100000.0), // 点位置 不是地图
+        point: {
+          pixelSize: 10,
+          color: Cesium.Color.YELLOW, // 点颜色
+          outlineColor: Cesium.Color.BLACK, // 点背景颜色 不是地图背景颜色 不是点的颜色
+          outlineWidth: 2,
+        },
+      });
+      // datasource.entities.removeById('id3')//删除点
+    </script>
+  </body>
+</html>

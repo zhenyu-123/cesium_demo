@@ -1,0 +1,136 @@
+<!--
+ * @Description: 坐标系统、坐标转换，世界坐标，地理坐标和屏幕坐标 。cesium中坐标系统分为地理坐标、世界坐标（X,Y,Z）、屏幕坐标三种。
+ * @Autor: sy
+ * @Date: 2023-05-08 09:36:56
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-08 10:21:26
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+    <script src="./Cesium/Cesium.js"></script>
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .cesium-widget-credits {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumcontainer"></div>
+    <script>
+      var viewer = new Cesium.Viewer("cesiumcontainer", {
+        animation: false,
+        fullscreenButton: false,
+        homeButton: false,
+        timeline: false,
+        geocoder: false,
+        baseLayerPicker: false,
+        sceneModePicker: false,
+        navigationHelpButton: false,
+        infoBox: false,
+        // 底图
+        imageryProvider: new Cesium.UrlTemplateImageryProvider({
+          url: "http://webrd01.is.autonavi.com/appmaptile?&scale=1&lang=zh_cn&style=8&x={x}&y={y}&z={z}", // 添加高德影像
+          minimumLevel: 1,
+          maximumLevel: 18,
+        }),
+      });
+      // 设置相机位置和角度以供viewer使用。
+      viewer.camera.setView({
+        destination: Cesium.Cartesian3.fromDegrees(109, 34, 1000000), //相机（眼睛）位置 不是地图位置  高多少米
+        //相机的姿态
+        orientation: {
+          heading: Cesium.Math.toRadians(0), // 朝向
+          pitch: Cesium.Math.toRadians(-90), // 俯仰
+          roll: 0.0, //滚转
+        },
+      });
+      var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+      handler.setInputAction(function (movement) {
+        var ray = this.viewer.camera.getPickRay(movement.position);
+        if (!ray) return null;
+        var position = this.viewer.scene.globe.pick(ray, this.viewer.scene);
+        console.log(movement.position, "屏幕坐标");
+        console.log(position, "笛卡尔空间直角坐标系");
+        var cartographic =
+          Cesium.Ellipsoid.WGS84.cartesianToCartographic(position);
+        console.log(cartographic, "WGS84弧度坐标");
+        //弧度转经纬度
+        var lat = Cesium.Math.toDegrees(cartographic.latitude);
+        var lng = Cesium.Math.toDegrees(cartographic.longitude);
+        console.log(lat, lng,'经纬度');
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+      // 补充
+      //       1，WGS84经纬度坐标；
+      // 系统中没有具体的对象。
+
+      // 2，WGS84弧度坐标（Cartographic）；
+      // 对象创建： new Cesium.Cartographic(lon,lat,alt);
+
+      // du = radus/pi*180;
+
+      // cos sin tan
+
+      // lon：经度，lat：维度，alt：海拔
+
+      // 3，笛卡尔空间直角坐标系（Cartesian3）；
+      // 对象创建： new Cesium.Cartesian3(x,y,z);
+
+      // x：x轴坐标，y：y轴坐标，z：z轴坐标
+
+      // 4，平面坐标系（Cartesian2）；
+      // 对象创建： new Cesium.Cartesian2(x,y);
+      // {x:45645,y:588,z:5855}
+      // 1，弧度经纬度转换
+      // 弧度转经纬度 var degrees = Cesium.Math.toDegrees(radians);
+
+      // 经纬度转弧度 var radians= Cesium.Math.toRadiancs(degrees);
+
+      // 2，WGS84坐标构建
+      // 由弧度创建 var cartogrographic = new Cesium.Cartographic(lonradians,latradians,alt);
+
+      // 静态函数 var cartogrographic =Cesium.Cartogrophic.fromRadians(lonradians,latradians,alt);
+
+      // var cartogrographic =Cesium.Cartogrophic.fromDegrees(londegree,latdegree,alt);
+
+      // // 3，WGS84弧度坐标与笛卡尔空间直角坐标系转换
+      // var cartesian3 = Cesium.Cartesian3.fromDegrees(londegree,latdegree,alt);
+
+      // var cartesian3s = Cesium.Cartesian3.fromDegreesArray([108,39,119,38]); 没有高度
+
+      // var cartesian3s = Cesium.Cartesian3.fromDegreesArrayHeights([108,39,1000,119,38,200]);有高度
+
+      // var cartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(cartesian3)；
+      // var cartographics = Cesium.Ellipsoid.WGS84.cartesianArrayToCartographicArray([cartesian1,cartesian2,cartesian3])；
+      // // 4 世界坐标转屏幕坐标
+      // var cartesian2= Cesium.SceneTransforms.wgs84ToWindowCoordinates(viewer.scene,cartesian3)
+      //  var position = viewer.scene.pickPosition(movement.position);
+
+      //  var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+      //   handler.setInputAction(function (movement) {
+      //       var ray = this.viewer.camera.getPickRay(movement.position);
+      //       if (!ray) return null;
+      //       var position = this.viewer.scene.globe.pick(ray, this.viewer.scene);
+      //       console.log(movement.position);
+      //       console.log(position);
+      //     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+      // 坐标系统相关链接补充：
+      // https://zhuanlan.zhihu.com/p/522245835
+      // （1）地球坐标（WGS84）World Geodetic System 1984，是为GPS全球定位系统使用而建立的坐标系统。国际标准，从 GPS 设备中取出的数据的坐标系，国际地图提供商使用的坐标系。（墨卡托投影）
+
+      // （2）GCJ-02（G-Guojia国家，C-Cehui测绘，J-Ju局），又被称为火星坐标系，是一种基于WGS-84制定的大地测量系统，由中国国测局制定。此坐标系所采用的混淆算法会在经纬度中加入随机的偏移。绝大部分国内互联网地图提供商都是使用GCJ-02坐标系，包括高德地图，谷歌地图中国区、腾讯地图等
+
+      // (3)百度坐标系:bd-09，百度坐标系是在GCJ－02坐标系的基础上再次加密偏移后形成的坐标系，只适用于百度地图。(目前百度API提供了从其它坐标系转换为百度坐标系的API，但却没有从百度坐标系转为其他坐标系的API);
+    </script>
+  </body>
+</html>
