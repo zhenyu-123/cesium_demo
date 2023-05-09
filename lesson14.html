@@ -1,0 +1,108 @@
+<!--
+ * @Description: 鼠标事件 左击事件，右击事件，中键，滚轮，鼠标移动
+ * @Autor: sy
+ * @Date: 2023-05-09 10:16:11
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-09 10:39:59
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+    <script src="./Cesium/Cesium.js"></script>
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .cesium-widget-credits {
+        display: none !important;
+      }
+      #cesiumcontainer {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumcontainer"></div>
+    <script>
+      var viewer = new Cesium.Viewer("cesiumcontainer", {
+        animation: false,
+        fullscreenButton: false,
+        homeButton: false,
+        timeline: false,
+        geocoder: false,
+        baseLayerPicker: false,
+        sceneModePicker: false,
+        navigationHelpButton: false,
+        infoBox: false,
+        imageryProvider: new Cesium.UrlTemplateImageryProvider({
+          url: "http://webrd01.is.autonavi.com/appmaptile?&scale=1&lang=zh_cn&style=8&x={x}&y={y}&z={z}", // 添加高德影像
+          mininumLevel: 1, // 最小级别，默认0，表示高德图像。
+          maxinumLevel: 18, // 最大级别，默认15，表示大型图像。
+        }),
+      });
+
+      var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+      handler.setInputAction(function (click) {
+        console.log("左键单击事件：", click.position);//笛卡尔坐标系（世界坐标）
+        var ray = viewer.camera.getPickRay(click.position);
+        // 判断是否点击了地球
+        var position = viewer.scene.globe.pick(ray, viewer.scene);
+        if (position) {
+          console.log("点击了地球", position);
+        }
+        var cartographic =
+          Cesium.Ellipsoid.WGS84.cartesianToCartographic(position);
+        console.log("经纬度转换为wgs84(弧度)", cartographic);
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+      handler.setInputAction(function (click) {
+        console.log("左键双击事件：", click.position);
+      }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+
+      handler.setInputAction(function (click) {
+        console.log("左键按下事件：", click.position);
+      }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
+
+      handler.setInputAction(function (click) {
+        console.log("左键弹起事件：", click.position);
+      }, Cesium.ScreenSpaceEventType.LEFT_UP);
+
+      handler.setInputAction(function (click) {
+        console.log("中键按下事件：", click.position);
+      }, Cesium.ScreenSpaceEventType.MIDDLE_DOWN);
+
+      handler.setInputAction(function (click) {
+        console.log("中键弹起事件：", click.position);
+      }, Cesium.ScreenSpaceEventType.MIDDLE_UP);
+
+      handler.setInputAction(function (movement) {
+        console.log("移动事件：", movement.endPosition);
+      }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+      handler.setInputAction(function (click) {
+        console.log("右键单击事件", click.position);
+      }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+
+      handler.setInputAction(function (click) {
+        console.log("右键按下事件", click.position);
+      }, Cesium.ScreenSpaceEventType.RIGHT_DOWN);
+
+      handler.setInputAction(function (click) {
+        console.log("右键弹起事件", click.position);
+      }, Cesium.ScreenSpaceEventType.RIGHT_UP);
+
+      handler.setInputAction(function (wheelment) {
+        console.log("滚轮事件：", wheelment);
+      }, Cesium.ScreenSpaceEventType.WHEEL);
+
+      // handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);  
+    </script>
+  </body>
+</html>

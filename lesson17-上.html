@@ -1,0 +1,91 @@
+<!--
+ * @Description:  添加模型gltf，动态模型，模型高亮，模型边框，模型姿态
+ * @Autor: sy
+ * @Date: 2023-05-09 15:13:42
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-09 15:59:05
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+    <script src="./Cesium/Cesium.js"></script>
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .cesium-widget-credits {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumcontainer"></div>
+    <script>
+      let exheight = 100;
+      var viewer = new Cesium.Viewer("cesiumcontainer", {
+        animation: false,
+        fullscreenButton: false,
+        homeButton: false,
+        timeline: false,
+        geocoder: false,
+        baseLayerPicker: false,
+        sceneModePicker: false,
+        navigationHelpButton: false,
+        infoBox: false,
+        // 底图
+        imageryProvider: new Cesium.UrlTemplateImageryProvider({
+          url: "http://webrd01.is.autonavi.com/appmaptile?&scale=1&lang=zh_cn&style=8&x={x}&y={y}&z={z}", // 添加高德影像
+          minimumLevel: 1,
+          maximumLevel: 18,
+        }),
+      });
+      // // 设置相机位置和角度以供viewer使用。
+      // viewer.camera.setView({
+      //   destination: Cesium.Cartesian3.fromDegrees(109, 34, 1000000), //相机（眼睛）位置 不是地图位置  高多少米
+      //   //相机的姿态
+      //   orientation: {
+      //     heading: Cesium.Math.toRadians(0), // 朝向
+      //     pitch: Cesium.Math.toRadians(-90), // 俯仰
+      //     roll: 0.0, //滚转
+      //   },
+      // });
+      let position = new Cesium.Cartesian3.fromDegrees(109, 34, 1000); // 地球世界坐标 不是地球
+      // 朝向、俯仰、滚转
+      let hpRoll = new Cesium.HeadingPitchRoll(
+        Cesium.Math.toRadians(-90),
+        Cesium.Math.toRadians(30),
+        Cesium.Math.toRadians(30)
+      ); //弧度
+      let orientation = Cesium.Transforms.headingPitchRollQuaternion(
+        position,
+        hpRoll
+      );
+      let model = viewer.entities.add({
+        // 模型id
+        id: "model",
+        position: position,
+        orientation: orientation,
+        // 模型资源
+        model: {
+          minimumPixelSize: 128,
+          // 模型路径
+          uri: "./data/lesson-017/Cesium_Air.glb",
+          // colorBlendMode:Cesium.ColorBlendMode.REPLACE,
+          color:Cesium.Color.RED,
+          //轮廓
+          shadows: Cesium.ShadowMode.ENABLED,
+          // silhouetteColor:Cesium.Color.BLUE,
+          // silhouetteSize:5,
+          // distanceDisplayCondition:new Cesium.DistanceDisplayCondition(1, 2000),//最小距离为1，最大距离为2000 内显示
+        },
+      });
+      viewer.zoomTo(model); // 模型显示在屏幕上面 或者 控制台打印id 或者
+    </script>
+  </body>
+</html>

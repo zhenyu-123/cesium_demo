@@ -1,0 +1,107 @@
+<!--
+ * @Description: 加载kml数据
+ * @Autor: sy
+ * @Date: 2023-05-09 09:57:00
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-09 10:10:43
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+    <script src="./Cesium/Cesium.js"></script>
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .cesium-widget-credits {
+        display: none !important;
+      }
+      #cesiumcontainer {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumcontainer"></div>
+    <script>
+      var viewer = new Cesium.Viewer("cesiumcontainer", {
+        animation: false,
+        fullscreenButton: false,
+        homeButton: false,
+        timeline: false,
+        geocoder: false,
+        baseLayerPicker: false,
+        sceneModePicker: false,
+        navigationHelpButton: false,
+        infoBox: false,
+        imageryProvider: new Cesium.UrlTemplateImageryProvider({
+          url: "http://webrd01.is.autonavi.com/appmaptile?&scale=1&lang=zh_cn&style=8&x={x}&y={y}&z={z}", // 添加高德影像
+          mininumLevel: 1, // 最小级别，默认0，表示高德图像。
+          maxinumLevel: 18, // 最大级别，默认15，表示大型图像。
+        }),
+      });
+      var promise = Cesium.KmlDataSource.load("./data/lesson-013/test.kml", {
+        camera: viewer.scene.camera,
+        canvas: viewer.scene.canvas,
+      });
+      promise.then((datasource) => {
+        viewer.dataSources.add(datasource);
+        viewer.zoomTo(datasource);
+        datasource.entities.values.forEach((enetity) => {
+          enetity.polygon.outlineColor = Cesium.Color.RED;
+          enetity.polygon.material = Cesium.Color.BLUE;
+          enetity.polygon.height = 1000;
+          enetity.polygon.extrudedHeight = 2000;
+        });
+      });
+
+      // 申明一个XMLHttpRequest
+      var request = new XMLHttpRequest(); // 设置请求方法与路径
+      request.open("get", "./data/lesson-013/test.kml");
+      // 不发送数据到服务器
+      request.send(null);
+      //XHR对象获取到返回信息后执行
+      request.onload = function () {
+        // 解析获取到的数据
+        var parser = new DOMParser();
+        var xmlDoc = parser.parseFromString(request.responseText, "text/xml");
+        let finds = xmlDoc.getElementsByTagName("coordinates"); //获取find节点
+        var count = finds.length;
+        for (let i = 0; i < count; i++) {
+          var res = finds[i].textContent;
+          var res1 = finds[i].textContent.replace(/[\r\n]/g, ""); //删除换行
+          var positions = res1.split(" "); //以空间为辨识 打断字符串
+          var poses = [];
+          positions.forEach((item, index) => {
+            if (item.length > 0) {
+              var pos = item.split(",");
+              poses.push(Number(pos[0]));
+              poses.push(Number(pos[1]));
+              poses.push(Number(pos[2]));
+            }
+          });
+          viewer.entities.add({
+            name: "hbei",
+            polygon: {
+              hierarchy: {
+                positions: Cesium.Cartesian3.fromDegreesArrayHeights(poses),
+              },
+              height: 10000,
+              extrudedHeight: 20000,
+              material: Cesium.Color.RED,
+              outline: true,
+              outlineColor: Cesium.Color.ORANGE,
+            },
+          });
+        }
+      };
+    </script>
+  </body>
+</html>

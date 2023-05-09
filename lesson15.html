@@ -1,0 +1,58 @@
+<!--
+ * @Description: 添加倾斜摄影
+ * @Autor: sy
+ * @Date: 2023-05-09 11:27:24
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-09 11:27:36
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+    <script src="./Cesium/Cesium.js"></script>
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .cesium-widget-credits {
+        display: none !important;
+      }
+      #cesiumcontainer {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumcontainer"></div>
+    <script>
+      var viewer = new Cesium.Viewer("cesiumcontainer", {
+        animation: false,
+        fullscreenButton: false,
+        homeButton: false,
+        timeline: false,
+        geocoder: false,
+        baseLayerPicker: false,
+        sceneModePicker: false,
+        navigationHelpButton: false,
+        infoBox: false,
+        imageryProvider: new Cesium.UrlTemplateImageryProvider({
+          url: "http://webst01.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}",
+          mininumLevel: 1, // 最小级别，默认0，表示高德图像。
+          maxinumLevel: 18, // 最大级别，默认15，表示大型图像。
+        }),
+      });
+      var tileset = new Cesium.Cesium3DTileset({
+        url: "./data/lesson-015/test3dtiles/tileset.json",
+        maximumScreenSpaceError: 1,//数值大的时候，距离越近，越清晰。距离越远，越模糊
+      });
+      viewer.scene.primitives.add(tileset);
+      viewer.zoomTo(tileset);
+    </script>
+  </body>
+</html>

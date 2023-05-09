@@ -1,0 +1,69 @@
+<!--
+ * @Description: 加载百度地图，webmocator，切片规则
+ * @Autor: sy
+ * @Date: 2023-05-09 09:03:32
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-09 09:16:12
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+    <script src="./Cesium/Cesium.js"></script>
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .cesium-widget-credits {
+        display: none !important;
+      }
+      #cesiumcontainer {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumcontainer"></div>
+    <script type="module">
+      import { BaiduImageryProvider } from "./js/BaiduImageryProvider.js";
+      var viewer = new Cesium.Viewer("cesiumcontainer", {
+        animation: false,
+        fullscreenButton: false,
+        homeButton: false,
+        timeline: false,
+        geocoder: false,
+        baseLayerPicker: false,
+        sceneModePicker: false,
+        navigationHelpButton: false,
+        infoBox: false,
+        imageryProvider: new BaiduImageryProvider({
+          url: "http://api0.map.bdimg.com/customimage/tile?&x={x}&y={y}&z={z}&scale=1&customid=darkgreen",
+        }),
+      });
+      viewer.imageryLayers.addImageryProvider(
+        new Cesium.WebMapTileServiceImageryProvider({
+          //调用矢量地图中文注记服务
+          url: "http://online{s}.map.bdimg.com/tile/?qt=tile&x={x}&y={y}&z={z}&styles={sl}&v=020",
+          subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"],
+          // layer: "tdtAnnoLayer",
+          // style: "default",
+          // format: "image/jpeg",
+          // tileMatrixSetID: "GoogleMapsCompatible",
+        })
+      );
+      //http://shangetu{s}.map.bdimg.com/it/u=x={x};y={y};z={z};v=009;type=sate&fm=46  //影像数据
+      //http://online{s}.map.bdimg.com/onlinelabel/?qt=tile&x={x}&y={y}&z={z}&styles=pl&scaler=1&p=1  //矢量切片
+      //http://online{s}.map.bdimg.com/tile/?qt=tile&x={x}&y={y}&z={z}&styles={sh/sl}&v=020     //标注
+      // http://api0.map.bdimg.com/customimage/tile?&x={x}&y={y}&z={z}&scale=1&customid=dark    //风格地图 dark,midnight,grayscale,hardedge,light,redalert,googlelite,grassgreen,pink,darkgreen,bluish
+      //  imageryProvider : new BaiduImageryProvider({
+      //   url: "http://api0.map.bdimg.com/customimage/tile?&x={x}&y={y}&z={z}&scale=1&customid=googlelite"
+      // })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,108 @@
+<!--
+ * @Description: 加载geojson数据
+ * @Autor: sy
+ * @Date: 2023-05-09 09:28:28
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-09 09:45:58
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+    <script src="./Cesium/Cesium.js"></script>
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .cesium-widget-credits {
+        display: none !important;
+      }
+      #cesiumcontainer {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumcontainer"></div>
+    <script>
+      var viewer = new Cesium.Viewer("cesiumcontainer", {
+        animation: false,
+        fullscreenButton: false,
+        homeButton: false,
+        timeline: false,
+        geocoder: false,
+        baseLayerPicker: false,
+        sceneModePicker: false,
+        navigationHelpButton: false,
+        infoBox: false,
+        imageryProvider: new Cesium.WebMapTileServiceImageryProvider({
+          url: "http://t{s}.tianditu.com/img_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=img&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default&format=tiles&tk=4bc7470ee8913b07fe11289faee14f3a",
+          subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"], //服务负载子域 (做负载均衡，提高加载速度)
+          layer: "tdtImgLayer",
+          style: "default",
+          format: "image/jpeg",
+          tileMatrixSetID: "GoogleMapsCompatible", //使用谷歌的瓦片切片方式
+        }),
+      });
+      var promise = Cesium.GeoJsonDataSource.load(
+        "./data/lesson-012/hbeiprovince.json"
+      );
+      promise.then((datasource) => {
+        console.log(datasource, "datasource");
+        viewer.dataSources.add(datasource);
+
+        datasource.entities.values.forEach((enetity) => {
+          console.log(enetity);
+          enetity.polygon.outlineColor = Cesium.Color.RED; //边框颜色
+          // enetity.polygon.material = Cesium.Color.BLUE;//填充颜色 （如果不可用则使用黑色） （如果不可用则使用一个黑色）
+          enetity.polygon.height = 10000; //高度
+          enetity.polygon.extrudedHeight = 2000; //拉伸高度
+        });
+        viewer.zoomTo(datasource);
+      });
+
+      // 申明一个XMLHttpRequest
+      var request = new XMLHttpRequest();
+      // 设置请求方法与路径
+      request.open("get", "./data/lesson-012/hbeiprovince.json");
+      // 不发送数据到服务器
+      request.send(null);
+      //XHR对象获取到返回信息后执行
+      request.onload = function () {
+        // 解析获取到的数据
+        var data = JSON.parse(request.responseText);
+
+        data.features.forEach((feature) => {
+          feature.geometry.coordinates.forEach((coordinate) => {
+            console.log(
+              coordinate,
+              coordinate.flat(),
+              Cesium.Cartesian3.fromDegreesArray(coordinate.flat())
+            );
+            viewer.entities.add({
+              name: "hbei",
+              polygon: {
+                hierarchy: {
+                  positions: Cesium.Cartesian3.fromDegreesArray(
+                    coordinate.flat()
+                  ),
+                },
+                height: 10000,
+                extrudedHeight: 20000,
+                material: Cesium.Color.RED,
+                outline: true,
+                outlineColor: Cesium.Color.ORANGE,
+              },
+            });
+          });
+        });
+      };
+    </script>
+  </body>
+</html>
