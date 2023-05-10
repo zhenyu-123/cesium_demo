@@ -1,0 +1,152 @@
+<!--
+ * @Description: 轨迹回放
+ * @Autor: sy
+ * @Date: 2023-05-10 11:54:32
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-10 16:55:51
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+    <script src="./Cesium/Cesium.js"></script>
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .cesium-widget-credits {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumcontainer"></div>
+    <script>
+      var viewer = new Cesium.Viewer("cesiumcontainer", {
+        animation: false,
+        fullscreenButton: false,
+        homeButton: false,
+        timeline: false,
+        geocoder: false,
+        baseLayerPicker: false,
+        sceneModePicker: false,
+        navigationHelpButton: false,
+        infoBox: false,
+        // 底图
+        imageryProvider: new Cesium.UrlTemplateImageryProvider({
+          url: "http://webrd01.is.autonavi.com/appmaptile?&scale=1&lang=zh_cn&style=8&x={x}&y={y}&z={z}", // 添加高德影像
+          minimumLevel: 1,
+          maximumLevel: 18,
+        }),
+      });
+      var datasource = new Cesium.CustomDataSource("enetiestestdata");
+      viewer.dataSources.add(datasource);
+      var lujingdata = [
+        [117.4603186710001, 31.14388249900003, 11.147400000001653],
+        [117.45946237800001, 31.143739847000063, 11.108399999997346],
+        [117.45859906800001, 31.143571198000075, 10.89079999999376],
+        [117.45789337300005, 31.143422075000046, 11.12170000000333],
+        [117.4571119630001, 31.143350937000037, 11.545700000002398],
+        [117.45620292500007, 31.143325030000028, 11.529899999994086],
+        [117.45545284400009, 31.143363754000063, 11.038100000005215],
+        [117.45473256600008, 31.143448056000068, 10.86380000000645],
+        [117.45399052200003, 31.143623321000064, 11.345600000000559],
+        [117.45347615200001, 31.14381135600007, 11.687300000005052],
+        [117.45292459000007, 31.144031608000034, 12.106100000004517],
+        [117.45192097000006, 31.144426226000064, 12.842399999994086],
+        [117.45065835500009, 31.144954275000032, 12.712299999999232],
+        [117.44980033200011, 31.145266268000057, 12.504899999999907],
+        [117.44943370300007, 31.145413392000023, 12.731599999999162],
+        [117.44920128900003, 31.145382554000037, 12.967699999993783],
+        [117.44897692800009, 31.144980649000047, 14.909599999999045],
+        [117.44872415000009, 31.14449598400006, 14.55899999999383],
+        [117.44851592000009, 31.144125416000065, 14.410999999992782],
+        [117.44848024700002, 31.14392828000007, 14.475800000000163],
+        [117.44948683700011, 31.14350793500006, 14.507400000002235],
+        [117.45089297600009, 31.142959855000072, 14.290399999998044],
+        [117.45149371900004, 31.142693826000027, 14.127099999997881],
+        [117.45166848000008, 31.142571364000048, 15.52610000000277],
+        [117.4516358520001, 31.142433625000024, 14.0341000000044],
+        [117.45082070700005, 31.140899211000033, 13.289099999994505],
+      ];
+      datasource.entities.add({
+        id: "id3",
+        name: "line",
+        polyline: {
+          positions: Cesium.Cartesian3.fromDegreesArrayHeights(
+            lujingdata.flat()
+          ),
+          width: 10,
+          material: Cesium.Color.RED,
+        },
+      });
+
+      // 路径回放
+      var property = new Cesium.SampledPositionProperty();
+      var starttime = new Date();
+      var stoptime;
+      var timestamp = starttime.getTime();
+
+      lujingdata.forEach((pos, index) => {
+        var time = new Date(timestamp + index * 5000); //每个点间隔5s
+        stoptime = time;
+        var position = Cesium.Cartesian3.fromDegrees(pos[0], pos[1], pos[2]);
+        property.addSample(Cesium.JulianDate.fromDate(time), position);
+      });
+      property.setInterpolationOptions({
+        interpolationDegree: 0.0001,
+        interpolationAlgorithm: Cesium.LagrangePolynomialApproximation,
+      });
+
+      var entitydd = datasource.entities.add({
+        availability: new Cesium.TimeIntervalCollection([
+          new Cesium.TimeInterval({
+            start: Cesium.JulianDate.fromDate(starttime),
+            stop: Cesium.JulianDate.fromDate(new Date(stoptime)),
+          }),
+        ]),
+        position: property, // 点集
+        // 图片
+        billboard: {
+          image: "./images/icon_1.png",
+          scale: 0.5,
+          pixelOffset: new Cesium.Cartesian2(0, -10),
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          clampToGround: true, //是否贴地
+        },
+        // 走过的线
+        path: {
+          leadTime: 0,
+          resolution: 1,
+          material: new Cesium.PolylineGlowMaterialProperty({
+            glowPower: 0.1,
+            color: Cesium.Color.GREEN,
+          }),
+          width: 10,
+        },
+      });
+
+      viewer.clock.currentTime = Cesium.JulianDate.fromDate(starttime); //修改时间轴的当前时间
+      viewer.clock.stopTime = Cesium.JulianDate.fromDate(new Date(stoptime));
+      viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;
+      // 运行一次
+      viewer.clock.shouldAnimate = true;
+      //开始播放
+      viewer.zoomTo(datasource);
+      // viewer.camera.setView({
+      //   destination: Cesium.Cartesian3.fromDegrees(109, 34, 1000000), //相机（眼睛）位置 不是地图位置  高多少米
+      //   //相机的姿态
+      //   orientation: {
+      //     heading: Cesium.Math.toRadians(0), // 朝向
+      //     pitch: Cesium.Math.toRadians(-90), // 俯仰
+      //     roll: 0.0, //滚转
+      //   },
+      // });
+    </script>
+  </body>
+</html>

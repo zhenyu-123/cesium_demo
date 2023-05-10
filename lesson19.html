@@ -1,0 +1,74 @@
+<!--
+ * @Description: material colormaterial imagematerial
+ * @Autor: sy
+ * @Date: 2023-05-10 09:13:04
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-10 10:03:02
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+    <script src="./Cesium/Cesium.js"></script>
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .cesium-widget-credits {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumcontainer"></div>
+    <script>
+      var viewer = new Cesium.Viewer("cesiumcontainer", {
+        animation: false,
+        fullscreenButton: false,
+        homeButton: false,
+        timeline: false,
+        geocoder: false,
+        baseLayerPicker: false,
+        sceneModePicker: false,
+        navigationHelpButton: false,
+        infoBox: false,
+        // 底图
+        imageryProvider: new Cesium.UrlTemplateImageryProvider({
+          url: "http://webrd01.is.autonavi.com/appmaptile?&scale=1&lang=zh_cn&style=8&x={x}&y={y}&z={z}", // 添加高德影像
+          minimumLevel: 1,
+          maximumLevel: 18,
+        }),
+      });
+      var datasource = new Cesium.CustomDataSource("enetiestestdata");
+      viewer.dataSources.add(datasource);
+      datasource.entities.add({
+        id: "id3",
+        position: new Cesium.Cartesian3.fromDegrees(109, 37, 100000.0), // 点位置 不是地图
+        polygon: {
+          hierarchy: Cesium.Cartesian3.fromDegreesArray([
+            109.080842, 45.002073, 105.91517, 45.002073, 104.058488, 44.996596,
+            104.053011, 43.002989, 104.053011, 41.003906, 105.728954, 40.998429,
+            107.919731, 41.003906, 109.04798, 40.998429, 111.047063, 40.998429,
+            111.047063, 42.000709, 111.047063, 44.476286, 111.05254, 45.002073,
+            109.080842, 45.002073,
+          ]),
+          height: 100, //如果高度不存在，则边框不生效
+          material: new Cesium.ImageMaterialProperty({
+            image: "./images/icon_1.png",
+            repeat:new Cesium.Cartesian2(1.0, 2)
+          }),
+          outline: true,
+          outlineColor: Cesium.Color.BLUE,
+          outlineWidth: 1,
+          fill: true,
+        },
+      });
+      viewer.zoomTo(datasource);
+    </script>
+  </body>
+</html>
