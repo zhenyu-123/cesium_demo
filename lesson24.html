@@ -1,0 +1,102 @@
+<!--
+ * @Description:  贴地线 groundpolylineprimitvie
+ * @Autor: sy
+ * @Date: 2023-05-11 15:16:39
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-11 15:47:09
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+    <script src="./Cesium/Cesium.js"></script>
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .cesium-widget-credits {
+        display: none !important;
+      }
+      #cesiumcontainer {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumcontainer"></div>
+    <script>
+      var viewer = new Cesium.Viewer("cesiumcontainer", {
+        animation: false,
+        fullscreenButton: false,
+        homeButton: false,
+        timeline: false,
+        geocoder: false,
+        baseLayerPicker: false,
+        sceneModePicker: false,
+        navigationHelpButton: false,
+        infoBox: false,
+        imageryProvider: new Cesium.UrlTemplateImageryProvider({
+          url: "http://webrd01.is.autonavi.com/appmaptile?&scale=1&lang=zh_cn&style=8&x={x}&y={y}&z={z}", // 添加高德影像
+        }),
+      });
+      //为椭球表面提供地形或其他几何形状。
+      viewer.terrainProvider = new Cesium.CesiumTerrainProvider({
+        url: "./data/lesson-009/sjzTerrain",
+      });
+
+      //实现 贴地线
+      var posarraywgs84 = [];
+      // 申明一个XMLHttpRequest
+      var request = new XMLHttpRequest();
+      // 设置请求方法与路径
+      request.open("get", "./data/lessson-024/polylinetest.json");
+      // 不发送数据到服务器
+      request.send(null);
+      //XHR对象获取到返回信息后执行
+      request.onload = function () {
+        // 解析获取到的数据
+        var data = JSON.parse(request.responseText);
+        // console.log(data);
+        data.features.forEach((feature) => {
+          feature.geometry.coordinates.forEach((coordinate) => {
+            //    console.log(coordinate);
+            posarraywgs84.push(coordinate);
+          });
+        });
+
+        console.log(posarraywgs84);
+        const instance2 = new Cesium.GeometryInstance({
+          geometry: new Cesium.GroundPolylineGeometry({
+            positions: Cesium.Cartesian3.fromDegreesArray(posarraywgs84.flat()),
+            width: 4.0,
+          }),
+        });
+
+        viewer.scene.groundPrimitives.add(
+          new Cesium.GroundPolylinePrimitive({
+            geometryInstances: instance2,
+            appearance: new Cesium.PolylineMaterialAppearance({
+              material: Cesium.Material.fromType("Color", {
+                color: Cesium.Color.RED,
+              }),
+            }),
+          })
+        );
+      };
+
+      viewer.camera.setView({
+        destination: Cesium.Cartesian3.fromDegrees(
+          114.22250152791344,
+          38.10180147534585,
+          40000
+        ),
+      });
+    </script>
+  </body>
+</html>

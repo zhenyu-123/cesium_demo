@@ -3,7 +3,7 @@
  * @Autor: sy
  * @Date: 2023-05-10 17:14:05
  * @LastEditors: sy
- * @LastEditTime: 2023-05-10 19:03:00
+ * @LastEditTime: 2023-05-11 14:04:32
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -27,16 +27,33 @@
   <body>
     <div id="cesiumcontainer"></div>
     <script>
+      // 判断点是否经过路径
+      function isPointOnPath(point, path) {
+        var x = point[0],
+          y = point[1];
+        var inside = false;
+        for (var i = 0, j = path.length - 1; i < path.length; j = i++) {
+          var xi = path[i][0],
+            yi = path[i][1];
+          var xj = path[j][0],
+            yj = path[j][1];
+          var intersect =
+            yi > y != yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+          if (intersect) inside = !inside;
+        }
+        return inside;
+      }
+
       var viewer = new Cesium.Viewer("cesiumcontainer", {
-        animation: false,
+        // animation: false,
         fullscreenButton: false,
         homeButton: false,
-        timeline: false,
+        // timeline: false,
         geocoder: false,
         baseLayerPicker: false,
         sceneModePicker: false,
         navigationHelpButton: false,
-        infoBox: false,
+        // infoBox: false,
         // 底图
         imageryProvider: new Cesium.UrlTemplateImageryProvider({
           url: "http://webrd01.is.autonavi.com/appmaptile?&scale=1&lang=zh_cn&style=8&x={x}&y={y}&z={z}", // 添加高德影像
@@ -73,6 +90,7 @@
         [117.45166848000008, 31.142571364000048, 15.52610000000277],
         [117.4516358520001, 31.142433625000024, 14.0341000000044],
         [117.45082070700005, 31.140899211000033, 13.289099999994505],
+        [117.45082070700005, 31.140899211000033, 13.289099999994505],
       ];
       datasource.entities.add({
         id: "id3",
@@ -85,22 +103,6 @@
           material: Cesium.Color.RED,
         },
       });
-      // 判断点是否经过路径
-      function isPointOnPath(point, path) {
-        var x = point[0],
-          y = point[1];
-        var inside = false;
-        for (var i = 0, j = path.length - 1; i < path.length; j = i++) {
-          var xi = path[i][0],
-            yi = path[i][1];
-          var xj = path[j][0],
-            yj = path[j][1];
-          var intersect =
-            yi > y != yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
-          if (intersect) inside = !inside;
-        }
-        return inside;
-      }
 
       // 路径回放
       var property = new Cesium.SampledPositionProperty();
@@ -115,10 +117,15 @@
         property.addSample(Cesium.JulianDate.fromDate(time), position); //给每个点添加时间
       });
       property.setInterpolationOptions({
-        interpolationDegree: 0.0001, //interpolationDegree确定要使用的插值次数。阶数越高，路径越平滑，但需要更多的计算。
+        interpolationDegree: 0.00001, //interpolationDegree确定要使用的插值次数。阶数越高，路径越平滑，但需要更多的计算。
         interpolationAlgorithm: Cesium.LagrangePolynomialApproximation, //interpolationAlgorithm确定用于插值的算法。LagrangePolynomialApproximation是平滑路径的一个很好的选择。
       });
-      console.log(property, "property");
+      console.log(
+        property,
+        "property",
+        Cesium.JulianDate.fromDate(starttime),
+        Cesium.JulianDate.fromDate(new Date(stoptime))
+      );
 
       var entitydd = datasource.entities.add({
         availability: new Cesium.TimeIntervalCollection([
@@ -140,7 +147,7 @@
           scale: 1,
           minimumPixelSize: 70,
           maximumScale: 70,
-          animation: true,
+          // animation: true,
         },
         // 走过的线
         path: {
@@ -153,54 +160,138 @@
           width: 10,
         },
       });
-
-      let timer = viewer.clock.onTick.addEventListener((tick) => {
+      function listener(tick) {
         entitydd.position.getValue(tick.currentTime);
-        console.log(tick.currentTime, "tick.currentTime");
-        // console.log(entitydd.position.getValue(tick.currentTime));
+        console.log(
+          tick.currentTime,
+          "tick.currentTime",
+          Cesium.JulianDate.fromDate(new Date(stoptime))
+        );
+        if (!entitydd.position.getValue(tick.currentTime)) {
+          // viewer.clock.shouldAnimate = false;
+          // return;
+        }
         //转为经纬度
         var cartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(
           entitydd.position.getValue(tick.currentTime)
         );
         cartographic.longitude = Cesium.Math.toDegrees(cartographic.longitude);
         cartographic.latitude = Cesium.Math.toDegrees(cartographic.latitude);
-        console.log(cartographic);
-        // 测试
-        // var point = [cartographic.longitude, cartographic.latitude];
-        // //检查是否到达地
-        // console.log(
-        //   point[0] == lujingdata[lujingdata.length - 1][0] &&
-        //     point[1] == lujingdata[lujingdata.length - 1][1],
-        //   point
-        // );
-        // if (
-        //   point[0] == lujingdata[lujingdata.length - 1][0] &&
-        //   point[1] == lujingdata[lujingdata.length - 1][1]
-        // ) {
-        //   var isOnPath = isPointOnPath(point, lujingdata);
-        //   if (isOnPath) {
-        //     console.log("走到最后一个");
-        //     viewer.clock.shouldAnimate = false;
-        //     viewer.clock.onTick.removeEventListener();
-        //   }
-        // }
-        //检查是否到达地
-        //检查是否到达地动画中的一个时间段中，记得使用 “.getValue” 或者 “.secondsOfDay” 获取值来计算时间段的长度。也可以 “.getValue” 并 “.subProperty” 获取子属性。 如果没有子属性，则可以
+        var time = Cesium.JulianDate.toDate(tick.currentTime);
+        var index = Math.floor((time - starttime) / 1000);
+        if (index >= lujingdata.length) {
+          index = lujingdata.length - 1;
+        }
+        var pos = lujingdata[index];
+        entitydd.label.text =
+          Number(pos[0]).toFixed(4) + "," + Number(pos[1]).toFixed(4);
         if (
-          property._property._times[
-            property._property._times.length - 1
-          ].secondsOfDay.toFixed() == tick.currentTime.secondsOfDay.toFixed()
+          pos[0] == lujingdata[lujingdata.length - 1][0] &&
+          pos[1] == lujingdata[lujingdata.length - 1][1]
         ) {
-          console.log("走到最后一个");
+          var isOnPath = isPointOnPath(pos, lujingdata);
+          if (isOnPath) {
+            console.log("走到最后一个");
+            viewer.clock.shouldAnimate = false;
+            viewer.clock.onTick.removeEventListener(listener);
+          }
+        }
+        console.log(index, "index", lujingdata.length);
+        if (index === lujingdata.length - 2) {
+          console.log("动画执行完毕");
           viewer.clock.shouldAnimate = false;
-          viewer.clock.onTick.removeEventListener(timer);
+          viewer.clock.onTick.removeEventListener(listener);
+        }
+      }
+      function listener2(tick) {
+        //转为经纬度
+        var cartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(
+          entitydd.position.getValue(tick.currentTime)
+        );
+        cartographic.longitude = Cesium.Math.toDegrees(cartographic.longitude);
+        cartographic.latitude = Cesium.Math.toDegrees(cartographic.latitude);
+        // 一、（经纬度）
+        // 通过比较小车当前位置与路径上每个点的经纬度和高度差的绝对值是否小于0.0001来判断小车是否经过了该点。
+        //这是因为在实际应用中，小车的位置可能会存在一定的误差，因此需要设置一个阈值来判断小车是否经过了路径上的某个点。
+        //如果经纬度和高度差的绝对值都小于0.0001，则认为小车经过了该点。因此，阈值的大小可以根据实际情况进行调整，一般来说，阈值越小，判断越精确，但也会增加计算量。
+
+        // 根据时间，判断小车经过了那个点
+        var currentPos = entitydd.position.getValue(tick.currentTime);
+        var currentPosCartographic =
+          Cesium.Ellipsoid.WGS84.cartesianToCartographic(currentPos);
+        var currentPosLongitude = Cesium.Math.toDegrees(
+          currentPosCartographic.longitude
+        );
+        var currentPosLatitude = Cesium.Math.toDegrees(
+          currentPosCartographic.latitude
+        );
+        var currentPosHeight = currentPosCartographic.height;
+        var currentIndex = -1;
+        for (var i = 0; i < lujingdata.length; i++) {
+          var pos = lujingdata[i];
+          console.log(pos, "pos", currentPosLongitude);
+          if (
+            Math.abs(pos[0] - currentPosLongitude) < 0.0001 &&
+            Math.abs(pos[1] - currentPosLatitude) < 0.0001 &&
+            Math.abs(pos[2] - currentPosHeight) < 0.0001
+          ) {
+            currentIndex = i;
+            break;
+          }
+        }
+        if (currentIndex >= 0) {
+          entitydd.label.text = "经过了第" + (currentIndex + 1) + "个点";
+        } else {
+          entitydd.label.text = "";
         }
 
         entitydd.label.text =
           Number(cartographic.longitude).toFixed(4) +
           "," +
           Number(cartographic.latitude).toFixed(4);
-      });
+      }
+      function listener3(tick) {
+        //转为经纬度
+        var cartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(
+          entitydd.position.getValue(tick.currentTime)
+        );
+        cartographic.longitude = Cesium.Math.toDegrees(cartographic.longitude);
+        cartographic.latitude = Cesium.Math.toDegrees(cartographic.latitude);
+        // 二、（距离）
+        // 可以通过判断小车当前位置是否与目标点重合来监听小车是否经过某一个点
+        // 可以使用 Cesium.Cartesian3.distance 方法计算两点之间的距离，若距离小于某个阈值，则判断为重合
+        // 示例代码：
+        // 定义目标点和阈值
+        var targetPoint = Cesium.Cartesian3.fromDegrees(
+          lujingdata[lujingdata.length - 1][0],
+          lujingdata[lujingdata.length - 1][1]
+        );
+        var threshold = 20; // 单位为米 // 判断小车是否经过目标点
+        console.log(targetPoint, "targetPoint");
+        console.log(
+          Cesium.Cartesian3.distance(
+            entitydd.position.getValue(tick.currentTime),
+            targetPoint
+          )
+        );
+        if (
+          Cesium.Cartesian3.distance(
+            entitydd.position.getValue(tick.currentTime),
+            targetPoint
+          ) < threshold
+        ) {
+          console.log("小车经过目标点");
+          viewer.clock.shouldAnimate = false;
+          viewer.clock.onTick.removeEventListener(listener3);
+        }
+
+        entitydd.label.text =
+          Number(cartographic.longitude).toFixed(4) +
+          "," +
+          Number(cartographic.latitude).toFixed(4);
+      }
+      
+      viewer.clock.onTick.addEventListener(listener);
       viewer.trackedEntity = entitydd;
       viewer.clock.currentTime = Cesium.JulianDate.fromDate(starttime); //修改时间轴的当前时间
       viewer.clock.stopTime = Cesium.JulianDate.fromDate(new Date(stoptime));
