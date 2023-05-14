@@ -1,0 +1,82 @@
+<!--
+ * @Description: 等高线
+ * @Autor: sy
+ * @Date: 2023-05-11 15:16:39
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-11 15:47:09
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+  <script src="./Cesium/Cesium.js"></script>
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    .cesium-widget-credits {
+      display: none !important;
+    }
+
+    #cesiumcontainer {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="cesiumcontainer"></div>
+  <script>
+    var viewer = new Cesium.Viewer("cesiumcontainer", {
+      animation: false,
+      fullscreenButton: false,
+      homeButton: false,
+      timeline: false,
+      geocoder: false,
+      baseLayerPicker: false,
+      sceneModePicker: false,
+      navigationHelpButton: false,
+      infoBox: false,
+      imageryProvider: new Cesium.UrlTemplateImageryProvider({
+        url: "http://webrd01.is.autonavi.com/appmaptile?&scale=1&lang=zh_cn&style=8&x={x}&y={y}&z={z}", // 添加高德影像
+      }),
+    });
+    //为椭球表面提供地形或其他几何形状。
+    viewer.terrainProvider = new Cesium.CesiumTerrainProvider({
+      url: "./data/lesson-009/sjzTerrain",
+    });
+
+
+    var elevationConterMaterial = new Cesium.Material({
+      fabric: {
+        type: 'ElevationContour',
+        uniforms: {
+          //等高线的颜色
+          color: new Cesium.Color(1.0, 0.0, 0.0, 1.0),
+          //等高线的间隔
+          spacing: 50,
+          width: 2,
+        }
+      }
+    });
+
+    viewer.scene.globe.material = elevationConterMaterial;
+
+
+
+    viewer.camera.setView({
+      destination: Cesium.Cartesian3.fromDegrees(114.22250152791344, 38.10180147534585, 40000)
+    })
+
+  </script>
+</body>
+
+</html>

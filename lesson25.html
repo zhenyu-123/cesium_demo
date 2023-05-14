@@ -1,0 +1,109 @@
+<!--
+ * @Description:  动态水面
+ * @Autor: sy
+ * @Date: 2023-05-11 15:16:39
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-11 15:47:09
+-->
+<!doctype html>
+<html>
+
+<head>
+    <title>Cesium020线样式</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+
+    <link rel="stylesheet" type="text/css" href="./Cesium/Widgets/widgets.css">
+    <script type="text/javascript" src="./Cesium/Cesium.js"></script>
+    <style>
+        div,
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        .cesium-widget-credits {
+            display: none !important;
+        }
+    </style>
+
+<body>
+    <div id="cesiumcontainer" style="width:100%;height:100%"></div>
+
+    <script type="text/javascript">
+        var viewer = new Cesium.Viewer("cesiumcontainer", {
+            //搜索框
+            geocoder: false,
+            //home键
+            homeButton: false,
+            // 动画控件
+            animation: false,
+            //全屏按钮
+            fullscreenButton: false,
+            //场景模式选择器
+            sceneModePicker: false,
+            //时间轴
+            timeline: false,
+            //导航提示
+            navigationHelpButton: false,
+            //地图选择器
+            baseLayerPicker: false,
+            imageryProvider: new Cesium.UrlTemplateImageryProvider({
+                url: "http://webrd01.is.autonavi.com/appmaptile?&scale=1&lang=zh_cn&style=8&x={x}&y={y}&z={z}",
+                minimumLevel: 1,
+                maximumLevel: 18
+            }),
+        })
+        //  console.log(Cesium.Cartographic);
+        // viewer.scene.primitives
+
+        //1 创建 geometry
+        const polygon = new Cesium.PolygonGeometry({
+            polygonHierarchy: new Cesium.PolygonHierarchy(
+                Cesium.Cartesian3.fromDegreesArray([
+                    90, 40,
+                    120, 40,
+                    120, 30,
+                    90, 30
+                ])
+            )
+        });
+        const geometry = Cesium.PolygonGeometry.createGeometry(polygon);
+
+        //2，创建geometryInstance
+        const instance = new Cesium.GeometryInstance({
+            geometry: geometry
+        });
+
+        //3,创建 material
+        var material = new Cesium.Material({
+            fabric: {
+                type: 'Water',
+                uniforms: {
+                    baseWaterColor: new Cesium.Color(64 / 255.0, 157 / 255.0, 253 / 255.0, 0.8),//水的颜色
+                    normalMap: './images/waterNormals.jpg',
+                    frequency: 2000,//水波纹的数量
+                    animationSpeed: 0.1,//水的速度，单位为秒。动画效果不是必需的。动画效果可以使用音频和水波纹进行复杂的计算。 大约10000.0。动画速度应该大于光栅化器的速度。
+                    amplitude:20,//水波纹振幅
+                    specularIntensity: 0.5//镜面反射强度
+                }
+            }
+        })
+
+        // 4 创建Appearance
+        var appearance = new Cesium.EllipsoidSurfaceAppearance({
+            material: material,
+        })
+
+        // 5创建primitive
+        viewer.scene.primitives.add(new Cesium.Primitive({
+            geometryInstances: instance,
+            appearance: appearance
+        }));
+
+
+        // viewer.zoomTo(material)
+
+    </script>
+</body>
+
+</html>
