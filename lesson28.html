@@ -1,0 +1,142 @@
+<!--
+ * @Description: 地形高程自由设色，elevationband 界面工具datGUI
+ * @Autor: sy
+ * @Date: 2023-05-11 15:16:39
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-11 15:47:09
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+  <script src="./Cesium/Cesium.js"></script>
+  <script src="./js/dat.gui.js"> </script>
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    .cesium-widget-credits {
+      display: none !important;
+    }
+
+    #cesiumcontainer {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="cesiumcontainer"></div>
+  <script type="module">
+    var controlers = {
+      height: 100,
+      interval: 10,
+      color1: "#FF0000",
+      color2: "#00FF00"
+    }
+    var gui = new dat.GUI();
+    gui.domElement.style = 'position:absolute;top:10px;right:10px;height:700px';
+    var viewer = new Cesium.Viewer("cesiumcontainer", {
+      //搜索框
+      geocoder: false,
+      //home键
+      homeButton: false,
+      // 动画控件
+      animation: false,
+      //全屏按钮
+      fullscreenButton: false,
+      //场景模式选择器
+      sceneModePicker: false,
+      //时间轴
+      timeline: false,
+      //导航提示
+      navigationHelpButton: false,
+      //地图选择器
+      baseLayerPicker: false,
+      imageryProvider: new Cesium.UrlTemplateImageryProvider({
+        url: "http://webrd01.is.autonavi.com/appmaptile?&scale=1&lang=zh_cn&style=8&x={x}&y={y}&z={z}", // 添加高德影像
+      }),
+    });
+    //为椭球表面提供地形或其他几何形状。
+    viewer.terrainProvider = new Cesium.CesiumTerrainProvider({
+      url: "./data/lesson-009/sjzTerrain",
+    });
+
+
+
+
+    var folder = gui.addFolder("菜单");
+    var heightparam = folder.add(controlers, "height", 100, 1000);
+    heightparam.onChange(param => {
+      createMaterial()
+    })
+
+    var intervalparam = folder.add(controlers, "interval", 1, 500);
+    intervalparam.onChange(param => {
+      createMaterial()
+    })
+    var color1param = folder.addColor(controlers, "color1");
+    color1param.onChange(param => {
+      createMaterial()
+    })
+
+    var color2param = folder.addColor(controlers, "color2");
+    color2param.onChange(param => {
+      createMaterial()
+    })
+
+    folder.open();
+
+    createMaterial();
+    function createMaterial() {
+      var elevationebandrMaterial = Cesium.createElevationBandMaterial({
+        scene: viewer.scene,
+        layers: [
+          {
+            entries: [
+              {
+                height: controlers.height,
+                color: Cesium.Color.fromCssColorString(controlers.color1)
+              },
+              {
+                height: controlers.height + controlers.interval,
+                color: Cesium.Color.fromCssColorString(controlers.color2)
+              },
+            ]
+          },
+          {
+            entries: [
+              {
+                height: controlers.height + 100,
+                color: Cesium.Color.fromCssColorString("#FFFFFF")
+              },
+              {
+                height: controlers.height + controlers.interval + 100,
+                color: Cesium.Color.fromCssColorString("#000000")
+              },
+            ]
+          }
+        ]
+      });
+
+      viewer.scene.globe.material = elevationebandrMaterial;
+    }
+
+
+
+    viewer.camera.setView({
+      destination: Cesium.Cartesian3.fromDegrees(114.22250152791344, 38.10180147534585, 40000)
+    })
+
+  </script>
+</body>
+
+</html>
