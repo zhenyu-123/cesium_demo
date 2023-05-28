@@ -1,0 +1,110 @@
+<!--
+ * @Description: 粒子系统-火焰
+ * @Autor: sy
+ * @Date: 2023-05-11 15:16:39
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-11 15:47:09
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+  <script src="./Cesium/Cesium.js"></script>
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    .cesium-widget-credits {
+      display: none !important;
+    }
+
+    #cesiumcontainer {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="cesiumcontainer"></div>
+  <script>
+
+    // 服务负载子域
+    var subdomains = ['0', '1', '2', '3', '4', '5', '6', '7'];
+    var viewer = new Cesium.Viewer("cesiumcontainer", {
+      //搜索框
+      geocoder: false,
+      //home键
+      homeButton: false,
+      // 动画控件
+      animation: false,
+      //全屏按钮
+      fullscreenButton: false,
+      //场景模式选择器
+      sceneModePicker: false,
+      //时间轴
+      timeline: false,
+      //导航提示
+      navigationHelpButton: false,
+      //添加动画
+      shouldAnimate: true,
+      //地图选择器
+      baseLayerPicker: false,
+      imageryProvider: new Cesium.UrlTemplateImageryProvider({
+        url: "http://webrd01.is.autonavi.com/appmaptile?&scale=1&lang=zh_cn&style=8&x={x}&y={y}&z={z}",
+        minimumLevel: 1,
+        maximumLevel: 18
+      }),
+    })
+    function computeModelMatrix(position) {
+      const center = Cesium.Cartesian3.fromDegrees(position.lon, position.lat, position.alt);
+      const matrix = Cesium.Transforms.eastNorthUpToFixedFrame(center);
+      return matrix;
+    }
+    function computeEmitterModelMatrix() {
+      let hpr = Cesium.HeadingPitchRoll.fromDegrees(0, 0, 0);
+      let trs = new Cesium.TranslationRotationScale();
+      trs.translation = Cesium.Cartesian3.fromElements(0, 0, 0);
+      trs.rotation = Cesium.Quaternion.fromHeadingPitchRoll(hpr);
+      let result = Cesium.Matrix4.fromTranslationRotationScale(trs);
+      return result
+    }
+
+
+    var particle = new Cesium.ParticleSystem({
+      image: './images/fire.png',
+      startColor: Cesium.Color.RED.withAlpha(0.1),
+      endColor: Cesium.Color.YELLOW.withAlpha(0.5),
+      startScale: 10,
+      endScale: 5,
+      minimumParticleLife: 1.5,
+      maximumParticleLife: 2,
+      minimumSpeed: 29,
+      maximumSpeed: 30,
+      imageSize: new Cesium.Cartesian2(1, 1),
+      sizeInMeters: true,
+      // Particles per second.
+      emissionRate: 100,
+      // lifetime: 60.0,
+      emitter: new Cesium.CircleEmitter(10.0),
+      modelMatrix: computeModelMatrix({ lon: 116.45, lat: 39.932, alt: 4 }),
+      emitterModelMatrix: computeEmitterModelMatrix()
+
+    })
+
+    viewer.scene.primitives.add(particle);
+    viewer.camera.setView({
+      destination: Cesium.Cartesian3.fromDegrees(116.45, 39.932, 3000)
+    })
+  </script>
+
+</body>
+
+</html>
