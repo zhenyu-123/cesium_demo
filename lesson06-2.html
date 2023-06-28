@@ -3,7 +3,7 @@
  * @Autor: sy
  * @Date: 2023-05-08 10:41:44
  * @LastEditors: sy
- * @LastEditTime: 2023-06-27 17:38:49
+ * @LastEditTime: 2023-06-28 09:08:49
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -13,6 +13,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
     <script src="./Cesium/Cesium.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <title>Document</title>
     <style>
       * {
@@ -22,10 +23,20 @@
       .cesium-widget-credits {
         display: none !important;
       }
+      .btn {
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: 999;
+      }
     </style>
   </head>
   <body>
     <div id="cesiumcontainer"></div>
+    <div class="btn">
+      <button id="to2d">2D</button>
+      <button id="to3d">3D</button>
+    </div>
     <script>
       var viewer = new Cesium.Viewer("cesiumcontainer", {
         animation: false,
@@ -112,14 +123,14 @@
           material: Cesium.Color.YELLOW,
         },
       });
-      viewer.camera.flyTo({
-        destination: Cesium.Cartesian3.fromDegrees(109, 34, 10000),
-        orientation: {
-          heading: Cesium.Math.toRadians(0), // 水平偏角，默认正北 0
-          pitch: Cesium.Math.toRadians(-90), // 俯视角，默认-90，垂直向下
-          roll: 0, // 旋转角
-        },
-        duration: 5,
+      $("#to2d").click(function () {
+        viewer.scene.morphTo2D(0); //二维
+      });
+      $("#to3d").click(function () {
+        viewer.scene.morphTo3D(0); //三维
+      });
+      $("#toGLB").click(function () {
+        viewer.scene.morphToColumbusView(1); //哥伦布视图
       });
       setTimeout(() => {
         // 使用Cesium的摄像机功能，将目光聚焦在要截图的区域。可以通过调整摄像机的位置、朝向和视场等参数来实现。
@@ -136,7 +147,6 @@
         //   allowTextureFilterAnisotropic: true,
         // },
         // 算出中心点的经纬度,设置相机等
-
         //  2设置相机位置和角度以供viewer使用。
         // viewer.camera.flyTo({
         //   destination: Cesium.Cartesian3.fromDegrees(109, 34, 10000),
@@ -148,12 +158,12 @@
         //   duration: 5,
         // });
         // 3截图
-        var canvas = viewer.scene.canvas;
-        var imageData = canvas.toDataURL("image/png");
-        console.log(imageData, "base64");
-        var img = document.createElement("img");
-        img.src = imageData;
-        document.body.appendChild(img);
+        // var canvas = viewer.scene.canvas;
+        // var imageData = canvas.toDataURL("image/png");
+        // console.log(imageData, "base64");
+        // var img = document.createElement("img");
+        // img.src = imageData;
+        // document.body.appendChild(img);
       }, 5000);
 
       // // 定义多边形的顶点数组,世界坐标系
