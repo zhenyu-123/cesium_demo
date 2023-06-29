@@ -1,0 +1,91 @@
+<!--
+ * @Description: 
+ * @Autor: sy
+ * @Date: 2023-06-29 08:35:59
+ * @LastEditors: sy
+ * @LastEditTime: 2023-06-29 14:15:55
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <title>Document</title>
+  </head>
+  <body>
+    <div>
+      <button id="undo">撤销</button>
+      <span id="span"></span>
+      <button id="redo">恢复</button>
+    </div>
+    <hr />
+    <button id="opreate">添加</button>
+  </body>
+  <script>
+    //     利用双栈实现撤销与恢复逻辑
+    // 以下，undo栈表示撤销栈，redo栈表示恢复栈。
+
+    // 1、进行增删改操作时，操作前状态入undo栈；
+
+    // 2、撤销时，当前状态入redo栈，然后undo栈出栈，替换当前状态；
+
+    // 3、恢复时，当前状态入undo栈，然后redo栈出栈，替换当前状态；
+
+    // 4、重新增删改操作时，当前状态入udo栈，恢复栈清空。
+
+    // 再者，如果有撤销步数限制，比如限定20步操作可撤销，需要设定以下umdo栈的
+
+    // 容量，需要栈底元素出栈。
+    let pointEntities = [];
+    let undoStack = [];
+    let redoStack = [];
+    // 创建一个空的历史记录数组和指针
+    $("#undo").click(function () {
+      undo(); // 撤销操作
+      console.log(pointEntities, undoStack, redoStack);
+      $("#span").text(pointEntities);
+    });
+    $("#redo").click(function () {
+      redo(); // 恢复操作
+      console.log(pointEntities, undoStack, redoStack);
+      $("#span").text(pointEntities);
+    });
+
+    $("#opreate").click(function () {
+      pointEntities.push([Math.floor(Math.random() * 10) + 10]);
+      console.log(undoStack, "sad");
+      undoStack.push([...pointEntities]);
+      console.log(pointEntities, undoStack, redoStack);
+      $("#span").text(pointEntities);
+      redoStack = [];
+    });
+
+    // 定义撤销函数
+    function undo() {
+      if (undoStack.length > 0) {
+        redoStack.push([...pointEntities]);
+        undoStack.pop();
+        let len = undoStack.length;
+        if (len == 0) {
+          pointEntities = [];
+          console.log("无法撤销");
+        } else {
+          pointEntities = undoStack[len - 1];
+        }
+      } else {
+        console.log("无法撤销");
+      }
+    }
+
+    // 定义恢复函数
+    function redo() {
+      if (redoStack.length > 0) {
+        undoStack.push([...pointEntities]);
+        pointEntities = redoStack.pop();
+      } else {
+        console.log("无法恢复");
+      }
+    }
+  </script>
+</html>
