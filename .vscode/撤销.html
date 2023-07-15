@@ -1,9 +1,7 @@
 <!--
  * @Description: 
- * @Autor: sy
  * @Date: 2023-06-29 08:35:59
- * @LastEditors: sy
- * @LastEditTime: 2023-06-29 14:15:55
+ * @LastEditTime: 2023-07-15 10:13:54
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -34,12 +32,9 @@
 
     // 4、重新增删改操作时，当前状态入udo栈，恢复栈清空。
 
-    // 再者，如果有撤销步数限制，比如限定20步操作可撤销，需要设定以下umdo栈的
-
-    // 容量，需要栈底元素出栈。
     let pointEntities = [];
-    let undoStack = [];
-    let redoStack = [];
+    let undoStack = []; // 撤销的数据
+    let redoStack = []; // 保存恢复的数据
     // 创建一个空的历史记录数组和指针
     $("#undo").click(function () {
       undo(); // 撤销操作
@@ -54,7 +49,6 @@
 
     $("#opreate").click(function () {
       pointEntities.push([Math.floor(Math.random() * 10) + 10]);
-      console.log(undoStack, "sad");
       undoStack.push([...pointEntities]);
       console.log(pointEntities, undoStack, redoStack);
       $("#span").text(pointEntities);
@@ -64,14 +58,13 @@
     // 定义撤销函数
     function undo() {
       if (undoStack.length > 0) {
-        redoStack.push([...pointEntities]);
+        redoStack.push([...JSON.parse(JSON.stringify(pointEntities))]);
         undoStack.pop();
         let len = undoStack.length;
         if (len == 0) {
           pointEntities = [];
-          console.log("无法撤销");
         } else {
-          pointEntities = undoStack[len - 1];
+          pointEntities = JSON.parse(JSON.stringify(undoStack[len - 1]));
         }
       } else {
         console.log("无法撤销");
@@ -81,8 +74,8 @@
     // 定义恢复函数
     function redo() {
       if (redoStack.length > 0) {
-        undoStack.push([...pointEntities]);
         pointEntities = redoStack.pop();
+        undoStack.push([...JSON.parse(JSON.stringify(pointEntities))]);
       } else {
         console.log("无法恢复");
       }
