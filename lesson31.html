@@ -80,19 +80,19 @@
               minimumHeights: new Array(coordinate.length).fill(0),
               maximumHeights: new Array(coordinate.length).fill(feature.properties.height * 3),
               material: new Cesium.Color(1.0, 1.0, 1.0, 1),
-              material: new Cesium.ImageMaterialProperty({
-                image: './images/louti.png',
-                repeat: new Cesium.Cartesian2(10, 1)
-              }),
+              // material: new Cesium.ImageMaterialProperty({
+              //   image: './images/louti.png',
+              //   repeat: new Cesium.Cartesian2(10, 1)
+              // }),
             },
             polygon: {
               hierarchy: Cesium.Cartesian3.fromDegreesArray(coordinate.flat()),
               width: 2,
               //material:new Cesium.Color(1.0,1.0,1.0,1),
-              material: new Cesium.ImageMaterialProperty({
-                image: './images/wuding.png',
-                repeat: new Cesium.Cartesian2(10, 1)
-              }),
+              // material: new Cesium.ImageMaterialProperty({
+              //   image: './images/wuding.png',
+              //   repeat: new Cesium.Cartesian2(10, 1)
+              // }),
               height: feature.properties.height * 3,
             }
           })

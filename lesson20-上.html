@@ -76,11 +76,11 @@
         name: "line",
         polyline: {
           positions: Cesium.Cartesian3.fromDegreesArray([80, 39, 109,30]),
-          width: 10,
+          width: 2,
           material: new Cesium.PolylineGlowMaterialProperty({
             color: Cesium.Color.BLUE,
-            glowPower: 0.9,//一个数字属性，指定辉光强度，以总线宽的百分比表示。
-            taperPower:0.5,//一个数字属性，指定渐变效果的强度，以占总线条长度的百分比表示。如果为1.0或更高，则不使用锥形效果。0.0为无条纹，1.0为有条纹。0.5为两边的中点条纹。用逗号分
+            glowPower: 0.1,//一个数字属性，指定辉光强度，以总线宽的百分比表示。
+            // taperPower:0.5,//一个数字属性，指定渐变效果的强度，以占总线条长度的百分比表示。如果为1.0或更高，则不使用锥形效果。0.0为无条纹，1.0为有条纹。0.5为两边的中点条纹。用逗号分
           }),
         },
       });

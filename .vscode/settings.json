@@ -98,5 +98,6 @@
         "throttleTime": 60000,
         "functionParamAddStr": "",
         "NoMatchParams": "no show param"
-    }
+    },
+    "liveServer.settings.port": 5502
 }

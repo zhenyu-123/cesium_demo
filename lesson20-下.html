@@ -1,0 +1,148 @@
+<!--
+ * @Description: 使用箭头样式，虚线样式和发光线样式
+ * @Autor: sy
+ * @Date: 2023-05-10 10:14:12
+ * @LastEditors: sy
+ * @LastEditTime: 2023-05-10 10:42:04
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./Cesium/Widgets/widgets.css" />
+    <script src="./Cesium/Cesium.js"></script>
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .cesium-widget-credits {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="cesiumcontainer"></div>
+    <script>
+        var viewer = new Cesium.Viewer("cesiumcontainer", {
+            animation: false,
+            fullscreenButton: false,
+            homeButton: false,
+            timeline: false,
+            geocoder: false,
+            baseLayerPicker: false,
+            sceneModePicker: false,
+            navigationHelpButton: false,
+            infoBox: false,
+            // 底图
+            imageryProvider: new Cesium.UrlTemplateImageryProvider({
+                url: "http://webrd01.is.autonavi.com/appmaptile?&scale=1&lang=zh_cn&style=8&x={x}&y={y}&z={z}", // 添加高德影像
+                minimumLevel: 1,
+                maximumLevel: 18,
+            }),
+        });
+        var datasource = new Cesium.CustomDataSource("enetiestestdata");
+        viewer.dataSources.add(datasource);
+        // 箭头
+        datasource.entities.add({
+            id: "id3",
+            name: "line",
+            polyline: {
+                positions: Cesium.Cartesian3.fromDegreesArray([88, 39, 109, 39]),
+                width: 20,
+                material: new Cesium.PolylineArrowMaterialProperty(Cesium.Color.RED),
+            },
+        });
+        // 虚线
+        datasource.entities.add({
+            id: "id4",
+            name: "line",
+            polyline: {
+                positions: Cesium.Cartesian3.fromDegreesArray([88, 39, 109, 35]),
+                width: 2,
+                material: new Cesium.PolylineDashMaterialProperty({
+                    color: Cesium.Color.RED,
+                    dashLength: 30,
+                    gapColor: Cesium.Color.YELLOW, //
+                }),
+            },
+        });
+        // 发光线
+        datasource.entities.add({
+            id: "id5",
+            name: "line",
+            polyline: {
+                positions: Cesium.Cartesian3.fromDegreesArray([80, 39, 109, 30]),
+                width: 2,
+                material: new Cesium.PolylineGlowMaterialProperty({
+                    color: Cesium.Color.BLUE,
+                    glowPower: 0.1,//指定辉光强度，以总线宽的百分比表示。
+                    taperPower:0.5,//指定渐变效果的强度，以占总线条长度的百分比表示。如果为1.0或更高，则不使用锥形效果。0.0为无条纹，1.0为有条纹。0.5为两边的中点条纹。用逗号分
+                }),
+            },
+        });
+        // 流动线
+        // 定义线条的起点和终点
+        var start = new Cesium.Cartesian3.fromDegrees(80, 39,50000);
+        var end = new Cesium.Cartesian3.fromDegrees(109, 30,50000);
+
+        // 定义片段着色器代码，创建脉冲效果材质
+        let fs = `
+  uniform vec4 color; // 定义颜色的uniform变量
+  uniform float speed; // 定义速度的uniform变量
+  uniform float percent; // 定义百分比的uniform变量
+  uniform float opacity; // 定义不透明度的uniform变量
+
+  czm_material czm_getMaterial(czm_materialInput materialInput) {
+    czm_material material = czm_getDefaultMaterial(materialInput); // 获取默认材质
+    vec2 st = materialInput.st; // 获取材质输入的st坐标
+    float time = fract(czm_frameNumber * speed / 1000.0); // 计算当前时间，控制脉冲效果
+    time *= (1.0 + percent); // 调整时间和百分比
+    float alpha = smoothstep(time - percent, time, st.s) * step(-time, -st.s); // 计算alpha通道，创建脉冲效果
+    alpha += opacity; // 添加不透明度
+    material.diffuse = color.rgb; // 设置材质颜色
+    material.alpha = alpha; // 设置材质alpha通道
+    return material; // 返回最终材质
+  }
+`;
+
+        // 创建材质实例，并设置动态uniforms
+        let material1 = new Cesium.Material({
+            fabric: {
+                uniforms: {
+                    color: Cesium.Color.RED, // 材质颜色
+                    speed: 10, // 材质动画速度
+                    percent: 0.3, // 脉冲效果的宽度百分比
+                    opacity: 0.0 // 材质的不透明度
+                },
+                source: fs // 片段着色器代码
+            }
+        });
+
+        // 创建一个几何体实例，并使用自定义材质
+        var primitive1 = new Cesium.Primitive({
+            geometryInstances: new Cesium.GeometryInstance({
+                geometry: new Cesium.PolylineGeometry({
+                    positions: [start, end], // 折线的起点和终点
+                    width: 20 // 折线的宽度
+                })
+            }),
+            appearance: new Cesium.PolylineMaterialAppearance({
+                material: material1 // 使用自定义材质
+            })
+        });
+
+        // 将几何体实例添加到场景中
+        viewer.scene.primitives.add(primitive1);
+
+        viewer.zoomTo(datasource);
+    </script>
+</body>
+
+</html>
